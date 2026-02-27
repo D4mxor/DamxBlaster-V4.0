@@ -1,1 +1,874 @@
-# DamxBlaster-V4.0
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAMX BLASTER v4.0 — Next-Gen WhatsApp Bot</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E94560;
+    --red2: #ff2d55;
+    --navy: #0a0a1a;
+    --navy2: #0f0f2a;
+    --navy3: #1a1a3e;
+    --cyan: #00d4ff;
+    --green: #00ff88;
+    --gold: #ffd700;
+    --white: #ffffff;
+    --muted: #8888aa;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(233,69,96,0.25);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--red); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1.5px solid var(--red);
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.6;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  /* ── GRID BG ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(233,69,96,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(233,69,96,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* ── GLOW ORBS ── */
+  .orb {
+    position: fixed; border-radius: 50%;
+    filter: blur(120px); pointer-events: none; z-index: 0;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb1 { width: 500px; height: 500px; background: rgba(233,69,96,0.12); top: -150px; left: -100px; }
+  .orb2 { width: 400px; height: 400px; background: rgba(0,212,255,0.08); bottom: 0; right: -100px; animation-delay: -4s; }
+  .orb3 { width: 300px; height: 300px; background: rgba(0,255,136,0.06); top: 50%; left: 50%; animation-delay: -2s; }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(20px, -30px) scale(1.05); }
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 60px; height: 70px;
+    background: rgba(10,10,26,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900; font-size: 18px;
+    color: var(--red); letter-spacing: 2px;
+    text-decoration: none;
+  }
+  .nav-logo img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+  .nav-links { display: flex; gap: 40px; }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    text-decoration: none; letter-spacing: 1px;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 1px; background: var(--red);
+    transform: scaleX(0); transform-origin: right;
+    transition: transform 0.3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+  .nav-cta {
+    font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
+    color: var(--red); border: 1px solid var(--red);
+    padding: 8px 20px; letter-spacing: 2px;
+    text-decoration: none; transition: all 0.3s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .nav-cta:hover { background: var(--red); color: var(--white); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 120px 60px 80px;
+    overflow: hidden;
+  }
+  .hero-inner {
+    max-width: 1100px; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--cyan);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 6px 14px; margin-bottom: 24px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--cyan); border-radius: 50%;
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900; line-height: 1.0;
+    margin-bottom: 8px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero-title .line1 { font-size: 64px; color: var(--white); display: block; }
+  .hero-title .line2 {
+    font-size: 72px; color: var(--red);
+    display: block;
+    text-shadow: 0 0 40px rgba(233,69,96,0.5), 0 0 80px rgba(233,69,96,0.2);
+    animation: glitch 4s infinite;
+  }
+  .hero-title .line3 {
+    font-size: 20px; color: var(--cyan);
+    display: block; margin-top: 8px;
+    letter-spacing: 6px;
+  }
+
+  @keyframes glitch {
+    0%,90%,100% { text-shadow: 0 0 40px rgba(233,69,96,0.5); clip-path: none; }
+    91% { clip-path: inset(20% 0 30% 0); transform: translate(-3px,0); text-shadow: 3px 0 var(--cyan); }
+    92% { clip-path: inset(50% 0 20% 0); transform: translate(3px,0); text-shadow: -3px 0 var(--green); }
+    93% { clip-path: none; transform: none; }
+  }
+
+  .hero-desc {
+    font-size: 16px; color: var(--muted); line-height: 1.8;
+    margin: 24px 0 40px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-btns {
+    display: flex; gap: 16px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-primary {
+    font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 700;
+    background: var(--red); color: var(--white);
+    padding: 14px 32px; letter-spacing: 2px;
+    text-decoration: none; border: none; cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+    transform: translateX(-100%); transition: transform 0.4s;
+  }
+  .btn-primary:hover::after { transform: translateX(100%); }
+  .btn-primary:hover { box-shadow: 0 0 30px rgba(233,69,96,0.6); }
+  .btn-ghost {
+    font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 700;
+    background: transparent; color: var(--white);
+    padding: 13px 32px; letter-spacing: 2px;
+    text-decoration: none; border: 1px solid rgba(255,255,255,0.2);
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: all 0.3s;
+  }
+  .btn-ghost:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
+
+  /* ── HERO IMAGE ── */
+  .hero-visual {
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-bot-card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 32px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    animation: cardFloat 4s ease-in-out infinite;
+  }
+  @keyframes cardFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .hero-bot-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), var(--cyan), transparent);
+    animation: shimmer 3s infinite;
+  }
+  @keyframes shimmer { 0%{opacity:0.5} 50%{opacity:1} 100%{opacity:0.5} }
+  .bot-logo-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .bot-logo-wrap img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 2px solid var(--border); }
+  .bot-logo-info .name { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; color: var(--red); }
+  .bot-logo-info .ver { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--cyan); margin-top: 2px; }
+  .bot-stats {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-top: 16px;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 12px 16px;
+  }
+  .stat-val { font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; color: var(--red); }
+  .stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 1px; }
+  .status-row { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+  .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: blink 1.5s infinite; }
+  .status-txt { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--green); }
+
+  /* ── SECTION ── */
+  section { position: relative; z-index: 1; }
+
+  .section-inner { max-width: 1100px; margin: 0 auto; padding: 100px 60px; }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--red);
+    letter-spacing: 3px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-tag::before { content: '//'; color: var(--muted); }
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 48px; font-weight: 900;
+    line-height: 1.1; margin-bottom: 20px;
+  }
+  .section-title span { color: var(--red); }
+  .section-sub { font-size: 16px; color: var(--muted); max-width: 560px; line-height: 1.7; }
+
+  /* ── FEATURES ── */
+  #features { background: linear-gradient(180deg, transparent, rgba(233,69,96,0.03), transparent); }
+
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; margin-top: 60px;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+  .feature-card {
+    background: var(--navy);
+    padding: 40px 32px;
+    transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--red);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .feature-card:hover::before { transform: scaleX(1); }
+  .feature-card:hover { background: var(--navy2); }
+  .feature-icon {
+    font-size: 36px; margin-bottom: 20px; display: block;
+    filter: drop-shadow(0 0 10px rgba(233,69,96,0.4));
+  }
+  .feature-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 15px; font-weight: 700;
+    color: var(--white); margin-bottom: 12px;
+  }
+  .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .feature-num {
+    position: absolute; top: 20px; right: 24px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px; color: rgba(233,69,96,0.2);
+    font-weight: 900;
+  }
+
+  /* ── COMMANDS ── */
+  #commands { background: var(--navy2); }
+
+  .cmd-tabs {
+    display: flex; gap: 2px; margin: 40px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cmd-tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    padding: 12px 24px; cursor: pointer;
+    border: none; background: transparent;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .cmd-tab.active { color: var(--red); border-bottom-color: var(--red); }
+  .cmd-tab:hover:not(.active) { color: var(--white); }
+
+  .cmd-panel { display: none; padding: 32px 0; }
+  .cmd-panel.active { display: block; }
+
+  .cmd-table { width: 100%; border-collapse: collapse; }
+  .cmd-table th {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--muted);
+    text-align: left; padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 1px;
+  }
+  .cmd-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 13px; vertical-align: top;
+    transition: background 0.2s;
+  }
+  .cmd-table tr:hover td { background: rgba(233,69,96,0.04); }
+  .cmd-name {
+    font-family: 'Space Mono', monospace;
+    color: var(--cyan); font-size: 13px;
+  }
+  .cmd-desc { color: var(--muted); }
+  .cmd-ex {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--green);
+    background: rgba(0,255,136,0.06);
+    padding: 3px 8px; display: inline-block;
+    border-radius: 2px;
+  }
+
+  /* ── ABOUT / DEV ── */
+  .dev-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: center;
+    margin-top: 60px;
+  }
+  .dev-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 40px;
+    position: relative;
+  }
+  .dev-card::after {
+    content: ''; position: absolute;
+    bottom: -1px; right: -1px;
+    width: 40px; height: 40px;
+    border-bottom: 2px solid var(--red);
+    border-right: 2px solid var(--red);
+  }
+  .dev-logo-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .dev-logo-row img { width: 72px; height: 72px; border-radius: 16px; object-fit: cover; border: 2px solid var(--border); }
+  .dev-name { font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; color: var(--white); }
+  .dev-tag { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--red); margin-top: 4px; }
+  .dev-info-list { list-style: none; }
+  .dev-info-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 14px; color: var(--muted);
+  }
+  .dev-info-list li:last-child { border-bottom: none; }
+  .dev-info-list .lbl { color: var(--red); font-family: 'Space Mono', monospace; font-size: 11px; min-width: 90px; margin-top: 2px; }
+
+  .dev-right-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px; font-weight: 900;
+    line-height: 1.2; margin-bottom: 20px;
+  }
+  .dev-right-title span { color: var(--red); }
+  .dev-right-desc { color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 32px; }
+
+  .version-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(233,69,96,0.1);
+    border: 1px solid rgba(233,69,96,0.3);
+    padding: 10px 20px; margin-bottom: 32px;
+  }
+  .version-badge .v { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: var(--red); }
+  .version-badge .vl { font-size: 12px; color: var(--muted); }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0; overflow: hidden;
+    background: rgba(233,69,96,0.03);
+  }
+  .ticker-inner {
+    display: flex; gap: 60px;
+    animation: ticker 20s linear infinite;
+    width: max-content;
+  }
+  .ticker-item {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px; font-weight: 700;
+    color: var(--muted); letter-spacing: 3px;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .ticker-item::after { content: '◆'; color: var(--red); font-size: 8px; }
+  @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 60px;
+    background: var(--navy2);
+  }
+  .footer-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 2fr 1fr 1fr;
+    gap: 60px;
+  }
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 24px; font-weight: 900; color: var(--red);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .footer-logo img { width: 40px; height: 40px; border-radius: 8px; }
+  .footer-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .footer-heading {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--red);
+    letter-spacing: 2px; margin-bottom: 20px;
+  }
+  .footer-links { list-style: none; }
+  .footer-links li { margin-bottom: 10px; }
+  .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom {
+    max-width: 1100px; margin: 40px auto 0;
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-copy { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+  .footer-tg {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--cyan); text-decoration: none;
+    border: 1px solid rgba(0,212,255,0.3); padding: 6px 14px;
+    transition: all 0.2s;
+  }
+  .footer-tg:hover { background: rgba(0,212,255,0.1); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s, transform 0.7s; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--red); }
+
+  /* ── MOBILE ── */
+  @media(max-width: 900px) {
+    nav { padding: 0 24px; }
+    .nav-links, .nav-cta { display: none; }
+    .hero-inner, .dev-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .section-inner { padding: 70px 24px; }
+    .hero { padding: 120px 24px 60px; }
+    .hero-title .line1 { font-size: 42px; }
+    .hero-title .line2 { font-size: 50px; }
+    .section-title { font-size: 32px; }
+    .footer-inner { grid-template-columns: 1fr; gap: 40px; }
+    footer { padding: 40px 24px; }
+    .footer-bottom { flex-direction: column; gap: 16px; }
+  }
+  @media(max-width: 600px) {
+    .features-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="https://files.catbox.moe/4p7im2.jpg" alt="DAMX STORE">
+    DAMX STORE
+  </a>
+  <div class="nav-links">
+    <a href="#features">FEATURES</a>
+    <a href="#commands">COMMANDS</a>
+    <a href="#about">DEVELOPER</a>
+  </div>
+  <a href="https://t.me/D4mxorx" class="nav-cta" target="_blank">TELEGRAM</a>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">NEXT-GEN WHATSAPP BOT &nbsp;• VERSI 4.0</div>
+      <h1 class="hero-title">
+        <span class="line1">DAMX</span>
+        <span class="line2">BLASTER</span>
+        <span class="line3">V4.0</span>
+      </h1>
+      <p class="hero-desc">Bot WhatsApp paling pantas untuk broadcast group besar-besaran. Automasi penuh, pengurusan mudah, hasil maksimum. Dibina untuk peniaga serius.</p>
+      <div class="hero-btns">
+        <a href="https://t.me/D4mxorx" class="btn-primary" target="_blank">DAPATKAN BOT</a>
+        <a href="#commands" class="btn-ghost">LIHAT COMMAND</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-bot-card">
+        <div class="bot-logo-wrap">
+          <img src="https://files.catbox.moe/mdgjn0.jpg" alt="DAMX BLASTER">
+          <div class="bot-logo-info">
+            <div class="name">DAMX BLASTER</div>
+            <div class="ver">// VERSION 4.0</div>
+          </div>
+        </div>
+        <div class="bot-stats">
+          <div class="stat-item">
+            <div class="stat-val" id="cnt1">0</div>
+            <div class="stat-lbl">MAX GROUP</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="cnt2">0</div>
+            <div class="stat-lbl">COMMAND</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="cnt3">0</div>
+            <div class="stat-lbl">MOD BLAST</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val">24/7</div>
+            <div class="stat-lbl">UPTIME</div>
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-dot"></div>
+          <div class="status-txt">BOT ONLINE & READY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TICKER ── -->
+<div class="ticker-wrap">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-tag reveal">KENAPA DAMX BLASTER</div>
+    <h2 class="section-title reveal">CIRI-CIRI <span>UTAMA</span></h2>
+    <p class="section-sub reveal">Dibina khusus untuk kecekapan blast WhatsApp — pantas, selamat, dan mudah digunakan.</p>
+
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <span class="feature-num">01</span>
+        <span class="feature-icon">📡</span>
+        <div class="feature-name">BROADCAST PANTAS</div>
+        <p class="feature-desc">Hantar mesej ke ratusan group dalam masa singkat. Sokong teks, gambar, video, audio dan dokumen.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">02</span>
+        <span class="feature-icon">🔄</span>
+        <div class="feature-name">AUTO BCGC</div>
+        <p class="feature-desc">Broadcast automatik berulang setiap putaran. Set sekali, bot akan terus blast tanpa perlu jaga.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">03</span>
+        <span class="feature-icon">⏰</span>
+        <div class="feature-name">BLAST BERJADUAL</div>
+        <p class="feature-desc">Jadualkan broadcast pada masa tertentu. Promosi pagi, tengah hari, malam — semua automatik.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">04</span>
+        <span class="feature-icon">🚫</span>
+        <div class="feature-name">BLACKLIST PINTAR</div>
+        <p class="feature-desc">Skip group tertentu dari blast. Guna nombor index atau ID group. Add & remove terus dari chat.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">05</span>
+        <span class="feature-icon">💬</span>
+        <div class="feature-name">AUTO REPLY</div>
+        <p class="feature-desc">Balas mesej private secara automatik. Set teks sendiri, aktif/matikan bila-bila masa.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">06</span>
+        <span class="feature-icon">📊</span>
+        <div class="feature-name">DASHBOARD PENUH</div>
+        <p class="feature-desc">Semak status bot, stats group, autobcgc, autoreply — semua dalam satu command .ping.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">07</span>
+        <span class="feature-icon">💾</span>
+        <div class="feature-name">BACKUP AUTOMATIK</div>
+        <p class="feature-desc">Backup semua fail bot jadi .zip dan hantar terus ke PM. Data selamat bila-bila masa.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">08</span>
+        <span class="feature-icon">🔒</span>
+        <div class="feature-name">KESELAMATAN TINGGI</div>
+        <p class="feature-desc">Hanya nombor berdaftar boleh guna bot. Sistem whitelist dan security layer enterprise.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-num">09</span>
+        <span class="feature-icon">⚡</span>
+        <div class="feature-name">2 MOD BLAST</div>
+        <p class="feature-desc">Mod FAST untuk keselamatan, mod BRUTAL untuk kelajuan maksimum. Tukar ikut keperluan.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMMANDS ── -->
+<section id="commands">
+  <div class="section-inner">
+    <div class="section-tag reveal">SENARAI COMMAND</div>
+    <h2 class="section-title reveal">ALL <span>COMMANDS</span></h2>
+    <p class="section-sub reveal">Semua command menggunakan prefix <code style="color:var(--cyan);font-family:'Space Mono',monospace">.</code> atau <code style="color:var(--cyan);font-family:'Space Mono',monospace">#</code></p>
+
+    <div class="cmd-tabs">
+      <button class="cmd-tab active" onclick="switchTab(this,'tab-blast')">📡 BROADCAST</button>
+      <button class="cmd-tab" onclick="switchTab(this,'tab-group')">⚙️ GROUP</button>
+      <button class="cmd-tab" onclick="switchTab(this,'tab-reply')">💬 AUTO REPLY</button>
+      <button class="cmd-tab" onclick="switchTab(this,'tab-tools')">🔧 TOOLS</button>
+    </div>
+
+    <div class="cmd-panel active" id="tab-blast">
+      <table class="cmd-table">
+        <thead><tr><th>COMMAND</th><th>FUNGSI</th><th>CONTOH</th></tr></thead>
+        <tbody>
+          <tr><td class="cmd-name">.bcgc</td><td class="cmd-desc">Broadcast ke semua group</td><td><span class="cmd-ex">.bcgc Promosi hari ini!</span></td></tr>
+          <tr><td class="cmd-name">.bcgccustom</td><td class="cmd-desc">Broadcast ke N group rawak</td><td><span class="cmd-ex">.bcgccustom 10 Tawaran!</span></td></tr>
+          <tr><td class="cmd-name">.autobcgc</td><td class="cmd-desc">Broadcast automatik berulang</td><td><span class="cmd-ex">.autobcgc Jom join!</span></td></tr>
+          <tr><td class="cmd-name">.bcgcsmart</td><td class="cmd-desc">Broadcast berjadual masa tertentu</td><td><span class="cmd-ex">.bcgcsmart 09:00 Promo</span></td></tr>
+          <tr><td class="cmd-name">.setjeda</td><td class="cmd-desc">Ubah jeda antara putaran blast</td><td><span class="cmd-ex">.setjeda 30m</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cmd-panel" id="tab-group">
+      <table class="cmd-table">
+        <thead><tr><th>COMMAND</th><th>FUNGSI</th><th>CONTOH</th></tr></thead>
+        <tbody>
+          <tr><td class="cmd-name">.listgc</td><td class="cmd-desc">Senarai semua group + nombor index</td><td><span class="cmd-ex">.listgc</span></td></tr>
+          <tr><td class="cmd-name">.blbcgc</td><td class="cmd-desc">Blacklist group dari broadcast</td><td><span class="cmd-ex">.blbcgc 1,2,3</span></td></tr>
+          <tr><td class="cmd-name">.getlink</td><td class="cmd-desc">Senarai / export link group</td><td><span class="cmd-ex">.getlink file</span></td></tr>
+          <tr><td class="cmd-name">.autojoin</td><td class="cmd-desc">Auto join group dari link</td><td><span class="cmd-ex">.autojoin</span></td></tr>
+          <tr><td class="cmd-name">.pushkontak</td><td class="cmd-desc">Hantar kontak ke penerima</td><td><span class="cmd-ex">.pushkontak</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cmd-panel" id="tab-reply">
+      <table class="cmd-table">
+        <thead><tr><th>COMMAND</th><th>FUNGSI</th><th>CONTOH</th></tr></thead>
+        <tbody>
+          <tr><td class="cmd-name">.autoreply on</td><td class="cmd-desc">Aktifkan auto reply</td><td><span class="cmd-ex">.autoreply on</span></td></tr>
+          <tr><td class="cmd-name">.autoreply off</td><td class="cmd-desc">Matikan auto reply</td><td><span class="cmd-ex">.autoreply off</span></td></tr>
+          <tr><td class="cmd-name">.autoreply set</td><td class="cmd-desc">Set teks balasan</td><td><span class="cmd-ex">.autoreply set Hai!</span></td></tr>
+          <tr><td class="cmd-name">.autoreply status</td><td class="cmd-desc">Semak status autoreply</td><td><span class="cmd-ex">.autoreply status</span></td></tr>
+          <tr><td class="cmd-name">.autoreply clear</td><td class="cmd-desc">Reset senarai yang dah direply</td><td><span class="cmd-ex">.autoreply clear</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cmd-panel" id="tab-tools">
+      <table class="cmd-table">
+        <thead><tr><th>COMMAND</th><th>FUNGSI</th><th>CONTOH</th></tr></thead>
+        <tbody>
+          <tr><td class="cmd-name">.ping</td><td class="cmd-desc">Dashboard penuh — info bot & sistem</td><td><span class="cmd-ex">.ping</span></td></tr>
+          <tr><td class="cmd-name">.backup</td><td class="cmd-desc">Backup semua fail → hantar .zip</td><td><span class="cmd-ex">.backup</span></td></tr>
+          <tr><td class="cmd-name">.restart</td><td class="cmd-desc">Restart bot dari WhatsApp</td><td><span class="cmd-ex">.restart yes</span></td></tr>
+          <tr><td class="cmd-name">.menu</td><td class="cmd-desc">Papar semua command</td><td><span class="cmd-ex">.menu</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT / DEV ── -->
+<section id="about">
+  <div class="section-inner">
+    <div class="section-tag reveal">DEVELOPER</div>
+    <h2 class="section-title reveal">TENTANG <span>KAMI</span></h2>
+
+    <div class="dev-grid reveal">
+      <div class="dev-card">
+        <div class="dev-logo-row">
+          <img src="https://files.catbox.moe/4p7im2.jpg" alt="DAMX STORE">
+          <div>
+            <div class="dev-name">DAMX STORE</div>
+            <div class="dev-tag">// BOT DEVELOPER</div>
+          </div>
+        </div>
+        <ul class="dev-info-list">
+          <li><span class="lbl">PRODUK</span> DAMX BLASTER v4.0</li>
+          <li><span class="lbl">BAHASA</span> JavaScript (Node.js)</li>
+          <li><span class="lbl">PLATFORM</span> WhatsApp via Baileys</li>
+          <li><span class="lbl">TELEGRAM</span> t.me/D4mxorx</li>
+          <li><span class="lbl">CHANNEL</span> t.me/D4mxorxCH</li>
+          <li><span class="lbl">HAK CIPTA</span> © DAMX STORE. All rights reserved.</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="version-badge">
+          <span class="v">v4.0</span>
+          <span class="vl">DAMX BLASTER — LATEST RELEASE</span>
+        </div>
+        <div class="dev-right-title">Bot paling <span>advance</span> untuk keperluan blast kau.</div>
+        <p class="dev-right-desc">DAMX BLASTER direka untuk memudahkan kerja harian peniaga online — broadcast promosi, urus group, balas pelanggan — semua dalam satu bot. Pantas, selamat, dan sentiasa dikemaskini.</p>
+        <a href="https://t.me/D4mxorx" class="btn-primary" target="_blank">HUBUNGI DEVELOPER</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <img src="https://files.catbox.moe/4p7im2.jpg" alt="DAMX STORE">
+        DAMX STORE
+      </div>
+      <p class="footer-desc">Next-Gen WhatsApp Bot Service. Kami menyediakan penyelesaian automasi WhatsApp terbaik untuk perniagaan online anda.</p>
+    </div>
+    <div>
+      <div class="footer-heading">NAVIGASI</div>
+      <ul class="footer-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#commands">Commands</a></li>
+        <li><a href="#about">Developer</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">HUBUNGI</div>
+      <ul class="footer-links">
+        <li><a href="https://t.me/D4mxorx" target="_blank">Telegram Personal</a></li>
+        <li><a href="https://t.me/D4mxorxCH" target="_blank">Channel Update</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 DAMX STORE — DAMX BLASTER v4.0 — All Rights Reserved</div>
+    <a href="https://t.me/D4mxorxCH" class="footer-tg" target="_blank">📢 JOIN CHANNEL</a>
+  </div>
+</footer>
+
+<script>
+  // ── CURSOR ──────────────────────────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a,button').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.width='20px'; cursor.style.height='20px'; ring.style.opacity='0'; });
+    el.addEventListener('mouseleave', () => { cursor.style.width='12px'; cursor.style.height='12px'; ring.style.opacity='0.6'; });
+  });
+
+  // ── COUNTER ANIM ────────────────────────────────────────────────────────
+  function animCount(el, target, duration = 1500) {
+    let start = 0, step = target / (duration / 16);
+    const t = setInterval(() => {
+      start = Math.min(start + step, target);
+      el.textContent = Math.floor(start) + (target > 10 ? '+' : '');
+      if (start >= target) clearInterval(t);
+    }, 16);
+  }
+  const ob = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animCount(document.getElementById('cnt1'), 500, 1200);
+        animCount(document.getElementById('cnt2'), 20, 1000);
+        animCount(document.getElementById('cnt3'), 2, 800);
+        ob.disconnect();
+      }
+    });
+  });
+  ob.observe(document.getElementById('cnt1'));
+
+  // ── TICKER ──────────────────────────────────────────────────────────────
+  const items = ['DAMX BLASTER V4.0','BROADCAST PANTAS','AUTO BCGC','BLAST BERJADUAL','BLACKLIST PINTAR','AUTO REPLY','BACKUP BOT','KESELAMATAN TINGGI','MADE BY DAMX STORE'];
+  const ticker = document.getElementById('ticker');
+  const doubled = [...items, ...items, ...items, ...items];
+  ticker.innerHTML = doubled.map(i => `<span class="ticker-item">${i}</span>`).join('');
+
+  // ── REVEAL ON SCROLL ────────────────────────────────────────────────────
+  const revealOb = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => revealOb.observe(el));
+
+  // ── TABS ────────────────────────────────────────────────────────────────
+  function switchTab(btn, panelId) {
+    document.querySelectorAll('.cmd-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.cmd-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+  }
+
+  // ── ACTIVE NAV ──────────────────────────────────────────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.style.color = a.getAttribute('href') === '#'+cur ? 'var(--white)' : '';
+    });
+  });
+</script>
+</body>
+</html>
+
